@@ -3,7 +3,7 @@ import { Partner } from '@/types/partner';
 import { mockPartners } from '@/data/mockPartners';
 import { useToast } from '@/hooks/use-toast';
 
-const WEBHOOK_URL = 'https://n8nlocal.benceaiproject.uk/webhook-test/42275bdc-cab0-46a4-83be-989d0f937d52';
+const WEBHOOK_URL = 'https://n8nlocal.benceaiproject.uk/webhook/42275bdc-cab0-46a4-83be-989d0f937d52';
 
 export const usePartnerData = () => {
   const [partners, setPartners] = useState<Partner[]>(mockPartners);
