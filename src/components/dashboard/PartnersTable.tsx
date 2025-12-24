@@ -25,8 +25,14 @@ export const PartnersTable = ({ partners }: PartnersTableProps) => {
     });
   };
 
-  const formatPercent = (value: number) => {
-    return `${value.toFixed(1)}%`;
+  const formatPercent = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) return '0%';
+    return `${Number(value).toFixed(1)}%`;
+  };
+
+  const safeNumber = (value: number | undefined | null, defaultValue = 0) => {
+    if (value === undefined || value === null || isNaN(Number(value))) return defaultValue;
+    return Number(value);
   };
 
   return (
@@ -64,9 +70,9 @@ export const PartnersTable = ({ partners }: PartnersTableProps) => {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex flex-col items-end">
-                    <span className="font-semibold">{partner.osszes_arajanlat}</span>
+                    <span className="font-semibold">{safeNumber(partner.osszes_arajanlat)}</span>
                     <span className="text-xs text-muted-foreground">
-                      {partner.sikeres_arajanlatok} ✓ / {partner.sikertelen_arajanlatok} ✗
+                      {safeNumber(partner.sikeres_arajanlatok)} ✓ / {safeNumber(partner.sikertelen_arajanlatok)} ✗
                     </span>
                   </div>
                 </TableCell>
@@ -74,8 +80,8 @@ export const PartnersTable = ({ partners }: PartnersTableProps) => {
                   <div className="flex flex-col items-end">
                     <span className={cn(
                       'font-semibold',
-                      partner.sikeressegi_arany >= 60 ? 'text-success' :
-                      partner.sikeressegi_arany >= 40 ? 'text-warning' : 'text-destructive'
+                      safeNumber(partner.sikeressegi_arany) >= 60 ? 'text-success' :
+                      safeNumber(partner.sikeressegi_arany) >= 40 ? 'text-warning' : 'text-destructive'
                     )}>
                       {formatPercent(partner.sikeressegi_arany)}
                     </span>
@@ -90,14 +96,14 @@ export const PartnersTable = ({ partners }: PartnersTableProps) => {
                       <div
                         className={cn(
                           'h-full rounded-full transition-all',
-                          partner.ertek_pontszam >= 80 ? 'bg-success' :
-                          partner.ertek_pontszam >= 50 ? 'bg-primary' :
-                          partner.ertek_pontszam >= 30 ? 'bg-warning' : 'bg-destructive'
+                          safeNumber(partner.ertek_pontszam) >= 80 ? 'bg-success' :
+                          safeNumber(partner.ertek_pontszam) >= 50 ? 'bg-primary' :
+                          safeNumber(partner.ertek_pontszam) >= 30 ? 'bg-warning' : 'bg-destructive'
                         )}
-                        style={{ width: `${partner.ertek_pontszam}%` }}
+                        style={{ width: `${safeNumber(partner.ertek_pontszam)}%` }}
                       />
                     </div>
-                    <span className="font-semibold w-8">{partner.ertek_pontszam}</span>
+                    <span className="font-semibold w-8">{safeNumber(partner.ertek_pontszam)}</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-center text-sm">
@@ -106,10 +112,10 @@ export const PartnersTable = ({ partners }: PartnersTableProps) => {
                 <TableCell className="text-right">
                   <span className={cn(
                     'font-medium',
-                    partner.napok_a_legutobbi_arajanlat_ota > 60 ? 'text-destructive' :
-                    partner.napok_a_legutobbi_arajanlat_ota > 30 ? 'text-warning' : 'text-foreground'
+                    safeNumber(partner.napok_a_legutobbi_arajanlat_ota) > 60 ? 'text-destructive' :
+                    safeNumber(partner.napok_a_legutobbi_arajanlat_ota) > 30 ? 'text-warning' : 'text-foreground'
                   )}>
-                    {partner.napok_a_legutobbi_arajanlat_ota} nap
+                    {safeNumber(partner.napok_a_legutobbi_arajanlat_ota)} nap
                   </span>
                 </TableCell>
               </TableRow>
