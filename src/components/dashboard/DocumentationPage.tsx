@@ -61,6 +61,17 @@ export const DocumentationPage = () => {
                     <li>így kapunk egy stabilabb, összehasonlítható értéket.</li>
                   </ul>
                 </div>
+                <div className="mt-3 p-3 bg-muted/50 rounded-lg text-sm">
+                  <p className="font-medium mb-2">Képlet:</p>
+                  <div className="flex items-center justify-center text-muted-foreground">
+                    <span className="mr-2">adjusted_completion_rate =</span>
+                    <div className="inline-flex flex-col items-center">
+                      <span className="border-b border-muted-foreground px-2">completed_quotes + k · globalRate</span>
+                      <span className="px-2">total_quotes + k</span>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground mt-3 text-center">ahol <code className="bg-muted px-1 rounded">k</code> egy korrekciós súly (pl. 20).</p>
+                </div>
               </div>
               
               <div>
