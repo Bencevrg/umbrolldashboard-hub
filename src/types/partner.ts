@@ -33,9 +33,16 @@ export interface PartnerStats {
   kategoriaEloszlas: Record<string, number>;
 }
 
+export interface PartnerProductStat {
+  partner2: string;
+  termekkategoria: string;
+  db: number;
+}
+
 export interface DashboardData {
   partners: Partner[];
   topBest: TopPartner[];
   topWorst: TopPartner[];
   sleeping: SleepingPartner[];
+  partnerProductStats: PartnerProductStat[];
 }
