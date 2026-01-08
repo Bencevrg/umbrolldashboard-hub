@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Partner, TopPartner, SleepingPartner, DashboardData } from '@/types/partner';
+import { Partner, TopPartner, SleepingPartner, DashboardData, PartnerProductStat } from '@/types/partner';
 import { mockPartners } from '@/data/mockPartners';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,12 +29,20 @@ const normalizeTopPartner = (p: Record<string, unknown>): TopPartner => ({
   rank: Number(p.helyezés ?? p.rank ?? p.row_number ?? 0),
 });
 
+// PartnerProductStat normalizálása
+const normalizePartnerProductStat = (p: Record<string, unknown>): PartnerProductStat => ({
+  partner2: String(p.partner2 ?? p['partner2'] ?? ''),
+  termekkategoria: String(p.termekkategoria ?? p['termékkategória'] ?? p['termekkategória'] ?? ''),
+  db: Number(p.db ?? 0),
+});
+
 export const usePartnerData = () => {
   const [data, setData] = useState<DashboardData>({
     partners: mockPartners,
     topBest: [],
     topWorst: [],
     sleeping: [],
+    partnerProductStats: [],
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -61,6 +69,7 @@ export const usePartnerData = () => {
       let topBest: TopPartner[] = [];
       let topWorst: TopPartner[] = [];
       let sleeping: SleepingPartner[] = [];
+      let partnerProductStats: PartnerProductStat[] = [];
 
       // A webhook válasz egy tömb, az első elem tartalmazza az összes adatot
       const mainData = Array.isArray(responseData) ? responseData[0] : responseData;
@@ -70,14 +79,16 @@ export const usePartnerData = () => {
         const topBestRaw = mainData.top_best_customers || [];
         const topWorstRaw = mainData.top_worst_customers || [];
         const sleepingRaw = mainData.sleeping_customers || [];
+        const partnerProductStatsRaw = mainData.partner_product_stats || [];
 
         partners = (Array.isArray(partnersRaw) ? partnersRaw : []).map((p: Record<string, unknown>) => normalizePartner(p));
         topBest = (Array.isArray(topBestRaw) ? topBestRaw : []).map((p: Record<string, unknown>) => normalizeTopPartner(p));
         topWorst = (Array.isArray(topWorstRaw) ? topWorstRaw : []).map((p: Record<string, unknown>) => normalizeTopPartner(p));
         sleeping = (Array.isArray(sleepingRaw) ? sleepingRaw : []).map((p: Record<string, unknown>) => normalizeTopPartner(p));
+        partnerProductStats = (Array.isArray(partnerProductStatsRaw) ? partnerProductStatsRaw : []).map((p: Record<string, unknown>) => normalizePartnerProductStat(p));
       }
 
-      setData({ partners, topBest, topWorst, sleeping });
+      setData({ partners, topBest, topWorst, sleeping, partnerProductStats });
       
       toast({
         title: 'Sikeres frissítés',
@@ -100,6 +111,7 @@ export const usePartnerData = () => {
     topBest: data.topBest,
     topWorst: data.topWorst,
     sleeping: data.sleeping,
+    partnerProductStats: data.partnerProductStats,
     isLoading,
     fetchPartners,
   };

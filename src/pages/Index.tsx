@@ -9,12 +9,13 @@ import { ExplanationCard } from '@/components/dashboard/ExplanationCard';
 import { SleepingFilters } from '@/components/dashboard/SleepingFilters';
 import { DocumentationPage } from '@/components/dashboard/DocumentationPage';
 import { ChatPage } from '@/components/dashboard/ChatPage';
+import { ProductCategoriesPage } from '@/components/dashboard/ProductCategoriesPage';
 import { usePartnerData } from '@/hooks/usePartnerData';
 import { Partner, PartnerStats } from '@/types/partner';
 import { Users, TrendingUp, FileCheck, Moon, Target, AlertTriangle, Trophy, Clock } from 'lucide-react';
 
 const Index = () => {
-  const { partners, topBest, topWorst, sleeping, isLoading, fetchPartners } = usePartnerData();
+  const { partners, topBest, topWorst, sleeping, partnerProductStats, isLoading, fetchPartners } = usePartnerData();
   const [activeTab, setActiveTab] = useState('partners');
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
   const [sleepingThreshold, setSleepingThreshold] = useState(90);
@@ -210,6 +211,15 @@ const Index = () => {
               />
             </div>
           </>
+        );
+
+      case 'categories':
+        return (
+          <ProductCategoriesPage 
+            data={partnerProductStats} 
+            isLoading={isLoading} 
+            onRefresh={fetchPartners} 
+          />
         );
 
       case 'docs':
