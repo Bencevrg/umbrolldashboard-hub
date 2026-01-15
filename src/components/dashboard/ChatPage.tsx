@@ -9,6 +9,16 @@ import { ChatMessage } from '@/types/partner';
 
 const WEBHOOK_URL = 'https://bencevrg.app.n8n.cloud/webhook-test/87270230-ca97-4dad-812a-9c90c1394484';
 
+const getSessionId = (): string => {
+  const STORAGE_KEY = 'chat_session_id';
+  let sessionId = localStorage.getItem(STORAGE_KEY);
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    localStorage.setItem(STORAGE_KEY, sessionId);
+  }
+  return sessionId;
+};
+
 interface ChatPageProps {
   messages: ChatMessage[];
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
@@ -50,6 +60,7 @@ export const ChatPage = ({ messages, setMessages, onClearChat }: ChatPageProps) 
         body: JSON.stringify({
           message: userMessage.content,
           history: messages.map(m => ({ role: m.role, content: m.content })),
+          sessionId: getSessionId(),
         }),
       });
 
