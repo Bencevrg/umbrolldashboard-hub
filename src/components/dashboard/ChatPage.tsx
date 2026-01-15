@@ -172,7 +172,18 @@ export const ChatPage = ({ messages, setMessages, onClearChat }: ChatPageProps) 
                       )}
                     >
                       {message.role === 'assistant' ? (
-                        <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+                        <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none 
+                          prose-p:my-2 prose-p:leading-relaxed
+                          prose-ul:my-2 prose-ul:pl-4 prose-ul:list-disc
+                          prose-ol:my-2 prose-ol:pl-4 prose-ol:list-decimal
+                          prose-li:my-1 prose-li:leading-relaxed
+                          prose-headings:font-semibold prose-headings:mt-3 prose-headings:mb-2
+                          prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
+                          prose-strong:font-semibold prose-strong:text-foreground
+                          prose-code:bg-muted-foreground/20 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs
+                          prose-pre:bg-muted-foreground/10 prose-pre:p-3 prose-pre:rounded-lg prose-pre:overflow-x-auto
+                          prose-blockquote:border-l-2 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:my-2
+                          [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
                           <ReactMarkdown>
                             {message.content}
                           </ReactMarkdown>
