@@ -217,7 +217,7 @@ export const ChatPage = ({ messages, setMessages, onClearChat }: ChatPageProps) 
                           prose-blockquote:border-l-2 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:my-2
                           [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
                           <ReactMarkdown>
-                            {message.content}
+                            {message.content.replace(/\\n/g, '\n')}
                           </ReactMarkdown>
                         </div>
                       ) : (
