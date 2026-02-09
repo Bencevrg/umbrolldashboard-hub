@@ -1,5 +1,5 @@
 import umbrollLogo from '@/assets/umbroll-logo.png';
-import { Calendar, LogOut, Shield, User } from 'lucide-react';
+import { Calendar, Key, LogOut, Shield, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -57,6 +57,10 @@ export const DashboardHeader = () => {
               <DropdownMenuItem onClick={() => navigate('/mfa-setup')}>
                 <Shield className="h-4 w-4 mr-2" />
                 2FA beállítás
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/change-password')}>
+                <Key className="h-4 w-4 mr-2" />
+                Jelszó változtatás
               </DropdownMenuItem>
               {role === 'admin' && (
                 <DropdownMenuItem onClick={() => navigate('/admin/users')}>
