@@ -1,31 +1,29 @@
 
 
-# Visszalepes gombok az MFA oldalakhoz
+# Az Authenticator app TOTP ellenorzes javitasa
 
 ## Problema
 
-Az MFA oldalakrol (2FA ellenorzes es TOTP beallitas) nincs lehetoseg visszalepni. A felhasznalo beragad ezekre a kepernyokre.
+A `MFASetup.tsx`-ben a TOTP kod ellenorzese **kliensoldali hamis implementacioval** tortenik. A `generateTotpFromCounter` fuggveny NEM valos TOTP algoritmust hasznal -- egy egyszeru hash muveletet csinal a szabvanyos HMAC-SHA1 helyett. Emiatt a Microsoft/Google Authenticator altal generalt kod **soha nem fog egyezni** a kliensoldalon generalttal.
+
+A komment maga is elismeri: *"we'll do a simple hash-based approach for setup verification only"* -- de ez a megoldas egyszeruen nem mukodik.
+
+Kozben a szerveren (a `verify-mfa` edge functionben) letezo, helyes HMAC-SHA1 implementacio van.
 
 ## Megoldas
 
-Ket helyen kell "Vissza" gombot hozzaadni:
-
-### 1. MFA Verify oldal (`src/pages/MFAVerify.tsx`)
-- Egy "Kijelentkezes" gomb hozzaadasa a kod bevitel ala
-- Ez meghivja a `signOut()` fuggvenyt, ami visszairanyit a bejelentkezes oldalra
-- (Mivel az MFA verify kotelezoen kerul elo, itt nincs ertelme "vissza" gombnak -- csak kijelentkezni lehet)
-
-### 2. MFA Setup TOTP nézet (`src/pages/MFASetup.tsx`)
-- A TOTP beallitas kepernyore (ahol a titkos kulcsot es a kod mezeot latja) egy "Vissza" gomb kerul
-- Ez visszaallitja a `selectedType` allapotot `null`-ra, igy a felhasznalo ujra valaszthat modszert
+A setup soran a TOTP kod ellenorzeset at kell iranyitani a mar mukodo `verify-mfa` edge function-re, ahelyett hogy kliensoldali hamis ellenorzest hasznalnank.
 
 ## Technikai reszletek
 
-**`src/pages/MFAVerify.tsx`:**
-- A "Megerosite" gomb utan egy `Button variant="ghost"` hozzaadasa "Kijelentkezes" szoveggel
-- `onClick` => `signOut()` (mar elerheto a `useAuth` hookbol)
+**Modositando fajl:** `src/pages/MFASetup.tsx`
 
-**`src/pages/MFASetup.tsx`:**
-- A TOTP nezet (93-122. sor) `CardContent`-jeben a "Megerosite" gomb ala egy uj `Button variant="ghost"` kerul "Vissza" szoveggel
-- `onClick` => `setSelectedType(null); setTotpUri(null); setTotpSecret(null); setVerificationCode('');`
+1. A `verifyTotp` fuggvenyben a kliensoldali `verifyTotpCode()` hivast lecsereljuk egy `supabase.functions.invoke('verify-mfa', ...)` hivasra, ami a szerveren vegzi az ellenorzest a helyes HMAC-SHA1 algoritmussal.
+
+2. A feleslegesse valo kliensoldali fuggvenyeket (`verifyTotpCode`, `generateTotpFromCounter`) eltavolitjuk -- csak a `generateTotpSecret` marad meg, mert az a titkos kulcs generalasahoz kell.
+
+3. A `verifyTotp` fuggveny uj logikaja:
+   - Meghivja a `verify-mfa` edge function-t a `userId`, `code` es `mfaType: 'totp'` parameterekkel
+   - Ha a valasz `verified: true`, akkor frissiti az `is_verified` mezot es tovabbnavigal
+   - Ha nem, hibauzenet jelenik meg
 
