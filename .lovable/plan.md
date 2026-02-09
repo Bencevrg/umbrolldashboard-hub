@@ -1,117 +1,55 @@
 
-# Implementacios Terv - Mailtrap Integracioval
 
-## Valtozas az eredeti tervhez kepest
+# Terv: Regisztracio biztonsaga es bejelentkezesi hiba javitasa
 
-Egyetlen kulonbseg: **Mailtrap** hasznalata Resend helyett az email kuldeshez.
-- Secret neve: `MAILTRAP_API_KEY`
-- API vegpont: `https://send.api.mailtrap.io/api/send`
-- Amig nincs megadva az API kulcs, az auth rendszer mukodik (login, 2FA beallitas), de email kuldest igenylő funkciok (meghivo, email 2FA kod) hibauzenettel jelzik, hogy nincs konfigurálva
+## Problema
 
----
+1. Az `/auth?register=true` URL mindenki szamara elerheto, igy barki regisztralhat a meghivo rendszer megkerülesevel
+2. A bejelentkezes nem mukodik, mert az email megerosites be van kapcsolva, de email kuld szolgaltatas (Mailtrap) meg nincs konfigurálva
 
-## Implementacios Lepesek
+## Megoldas
 
-### 1. lepes: AuthContext es useAuth hook
-- `src/contexts/AuthContext.tsx` - Session kezeles, szerep lekerdezes, MFA allapot
-- `src/hooks/useAuth.ts` - Egyszerusitett hook a context hasznalathoz
+### 1. Automatikus email-megerosites bekapcsolasa (atmeneti)
 
-### 2. lepes: Auth oldalak
-- `src/pages/Auth.tsx` - Bejelentkezes (+ `?register=true` parameterrel regisztracio)
-- `src/pages/MFASetup.tsx` - TOTP QR kod beallitas vagy email 2FA valasztas
-- `src/pages/MFAVerify.tsx` - 6 jegyu kod megadasa
-- `src/pages/AcceptInvite.tsx` - Meghivo elfogadasa es regisztracio
+A Supabase auth konfiguracion at be kell allitani az automatikus email megerositest, hogy az elso admin felhasznalo be tudjon jelentkezni API kulcs nelkul.
 
-### 3. lepes: Vedett utvonalak
-- `src/components/auth/ProtectedRoute.tsx` - Session + 2FA + jovahagyott felhasznalo ellenorzes
-- `src/components/auth/AdminRoute.tsx` - Admin szerep ellenorzes
+- Kesobb, amikor a Mailtrap API kulcs elerheto, ezt visszakapcsoljuk
 
-### 4. lepes: App.tsx modositas
-- AuthProvider wrapper
-- Osszes uj utvonal hozzaadasa
-- ProtectedRoute es AdminRoute alkalmazasa
+### 2. Publikus regisztracio letiltasa
 
-### 5. lepes: Edge Functions (Mailtrap API-val)
+Az `Auth.tsx` oldalon el kell tavolitani a regisztracios lehetoseget. A regisztracio csak meghivon keresztul lesz elerheto (`AcceptInvite.tsx`).
 
-#### `supabase/functions/send-mfa-code/index.ts`
-```typescript
-// Mailtrap API hivas
-const res = await fetch("https://send.api.mailtrap.io/api/send", {
-  method: "POST",
-  headers: {
-    "Authorization": `Bearer ${Deno.env.get("MAILTRAP_API_KEY")}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    from: { email: "noreply@yourdomain.com", name: "Umbroll" },
-    to: [{ email: userEmail }],
-    subject: "2FA verifikacios kod",
-    text: `A kodod: ${code}`,
-  }),
-});
-```
+Valtozasok az `src/pages/Auth.tsx` fajlban:
+- Eltavolitjuk a `?register=true` parameter kezeleset
+- Csak a bejelentkezesi urlapot jelenítjuk meg
+- A regisztracios logika teljesen kiesik ebbol az oldalbol
 
-#### `supabase/functions/invite-user/index.ts`
-- Admin jogosultsag ellenorzes
-- Token generalas, adatbazisba mentes
-- Meghivo email kuldes Mailtrap API-val
+### 3. Az elso admin letrehozasanak folyamata
 
-#### `supabase/functions/verify-mfa/index.ts`
-- Kod ellenorzes, lejarat vizsgalat
-- Probalkozas szamlalo
-
-### 6. lepes: Admin felulet
-- `src/pages/AdminUsers.tsx` - Felhasznalok listaja, meghivo kuldes, szerep modositas
-
-### 7. lepes: Dashboard modositasok
-- `src/components/dashboard/DashboardHeader.tsx` - Profil menu (kijelentkezes) + admin ikon
-- `src/components/dashboard/DashboardNav.tsx` - Admin menu elem (feltételes)
-
-### 8. lepes: supabase/config.toml frissites
-- Edge function-ok JWT verifikacio kikapcsolasa (kodban tortenik az ellenorzes)
+Mivel a publikus regisztracio le lesz tiltva, az elso admin letrehozasa a kovetkezo lepesekbol all:
+1. Ideiglenesen visszaallitjuk a regisztracios lehetoseget (vagy kozvetlenul az adatbazisban hozzuk letre)
+2. Az automatikus email-megerosites mar be lesz kapcsolva, igy a fiok azonnal aktiv
+3. SQL paranccsal kiosztjuk az admin szerepet
+4. Utana a regisztracio ujra le lesz tiltva
 
 ---
 
-## Mailtrap vs Resend - Technikai kulonbseg
+## Technikai reszletek
 
-| | Resend | Mailtrap |
-|---|---|---|
-| Secret neve | `RESEND_API_KEY` | `MAILTRAP_API_KEY` |
-| API vegpont | `https://api.resend.com/emails` | `https://send.api.mailtrap.io/api/send` |
-| From formatum | `"Name <email>"` string | `{ email, name }` objektum |
-| To formatum | `["email"]` tomb | `[{ email }]` objektum tomb |
+### Fajl modositasok
 
----
+**`src/pages/Auth.tsx`**
+- Toroljuk az `isRegister` valtozot es a `searchParams` hasznalatat
+- Toroljuk a `signUp` agat a `handleSubmit`-bol
+- Csak `signInWithPassword` marad
+- Az UI-bol eltunnek a regisztracios szovegek
 
-## Kesobb teendo (amikor megvan az API kulcs)
+### Auth konfiguracio
+- `configure-auth` eszkozzel bekapcsoljuk az `autoconfirm` beallitast
 
-1. Add hozza a `MAILTRAP_API_KEY` secretet a Lovable Cloud-ban
-2. Allitsd be a kuldo domain-t a Mailtrap-ben (domain verifikacio)
-3. Frissitsd a `from` email cimet az edge function-okban a verifikalt domain-re
+### Osszefoglalas
+| Muvelet | Leiras |
+|---------|--------|
+| Auth config | Auto-confirm email bekapcsolasa |
+| `Auth.tsx` modositas | Regisztracio eltavolitasa, csak login marad |
 
----
-
-## Fajlok osszefoglalasa
-
-### Uj fajlok (13 db)
-| Fajl | Leiras |
-|------|--------|
-| `src/contexts/AuthContext.tsx` | Auth context + provider |
-| `src/hooks/useAuth.ts` | Auth hook |
-| `src/components/auth/ProtectedRoute.tsx` | Vedett utvonal |
-| `src/components/auth/AdminRoute.tsx` | Admin vedett utvonal |
-| `src/pages/Auth.tsx` | Login/register oldal |
-| `src/pages/MFASetup.tsx` | 2FA beallitas |
-| `src/pages/MFAVerify.tsx` | 2FA verifikacio |
-| `src/pages/AcceptInvite.tsx` | Meghivo elfogadasa |
-| `src/pages/AdminUsers.tsx` | Admin felulet |
-| `supabase/functions/invite-user/index.ts` | Meghivo edge function |
-| `supabase/functions/send-mfa-code/index.ts` | MFA kod kuldes |
-| `supabase/functions/verify-mfa/index.ts` | MFA ellenorzes |
-
-### Modositando fajlok (3 db)
-| Fajl | Valtozas |
-|------|----------|
-| `src/App.tsx` | AuthProvider, routing, vedett utvonalak |
-| `src/components/dashboard/DashboardHeader.tsx` | Profil menu, admin ikon |
-| `supabase/config.toml` | Edge function konfiguracio |
