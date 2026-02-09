@@ -12,6 +12,7 @@ import MFASetup from "./pages/MFASetup";
 import MFAVerify from "./pages/MFAVerify";
 import AcceptInvite from "./pages/AcceptInvite";
 import AdminUsers from "./pages/AdminUsers";
+import ChangePassword from "./pages/ChangePassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
