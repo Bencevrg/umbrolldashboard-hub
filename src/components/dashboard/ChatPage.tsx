@@ -9,10 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { ChatMessage } from '@/types/partner';
 
-const WEBHOOK_URLS = {
-  quick: 'https://bencevrg.app.n8n.cloud/webhook/87270230-ca97-4dad-812a-9c90c1394484',
-  thinking: 'https://bencevrg.app.n8n.cloud/webhook/abbd5cc8-81b1-433d-9d70-52efce34799d',
-};
+import { supabase } from '@/integrations/supabase/client';
 
 type ChatMode = 'quick' | 'thinking';
 
@@ -60,33 +57,31 @@ export const ChatPage = ({ messages, setMessages, onClearChat }: ChatPageProps) 
     setIsLoading(true);
 
     try {
-      const response = await fetch(WEBHOOK_URLS[chatMode], {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'mZy0LKP0MjZAFZEiA8JtoIU0vUWZIQHP',
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('chat-proxy', {
+        body: {
+          mode: chatMode,
           message: userMessage.content,
           history: messages.map(m => ({ role: m.role, content: m.content })),
           sessionId: getSessionId(),
-        }),
+        },
       });
 
-      const data = await response.text();
+      if (error) throw error;
+      const responseText = typeof data === 'string' ? data : JSON.stringify(data);
       
-      // Parse JSON response and extract output field
+      // Parse response and extract output field
       let content = 'Válasz érkezett.';
       try {
-        const parsed = JSON.parse(data);
-        // Handle array format: [{"output": "..."}]
+        const parsed = typeof data === 'string' ? JSON.parse(data) : data;
         if (Array.isArray(parsed) && parsed.length > 0) {
           content = parsed[0].output || parsed[0].message || JSON.stringify(parsed[0]);
+        } else if (parsed && typeof parsed === 'object') {
+          content = parsed.output || parsed.message || responseText;
         } else {
-          content = parsed.output || parsed.message || data;
+          content = responseText;
         }
       } catch {
-        content = data;
+        content = responseText;
       }
       
       const assistantMessage: ChatMessage = {
