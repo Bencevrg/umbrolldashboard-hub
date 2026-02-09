@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,6 @@ import { useAuth } from '@/hooks/useAuth';
 import umbrollLogo from '@/assets/umbroll-logo.png';
 
 const Auth = () => {
-  const [searchParams] = useSearchParams();
-  const isRegister = searchParams.get('register') === 'true';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,21 +30,8 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      if (isRegister) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        toast({
-          title: 'Regisztráció sikeres',
-          description: 'Kérjük, erősítsd meg az email címedet a kiküldött linkkel.',
-        });
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
     } catch (error: any) {
       toast({
         title: 'Hiba',
@@ -63,12 +48,8 @@ const Auth = () => {
       <Card className="w-full max-w-md shadow-card">
         <CardHeader className="text-center">
           <img src={umbrollLogo} alt="Umbroll" className="mx-auto mb-4 h-14" />
-          <CardTitle className="text-2xl">{isRegister ? 'Regisztráció' : 'Bejelentkezés'}</CardTitle>
-          <CardDescription>
-            {isRegister
-              ? 'Hozz létre egy új fiókot'
-              : 'Jelentkezz be a Partner Dashboard-ba'}
-          </CardDescription>
+          <CardTitle className="text-2xl">Bejelentkezés</CardTitle>
+          <CardDescription>Jelentkezz be a Partner Dashboard-ba</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -92,7 +73,7 @@ const Auth = () => {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Kérlek várj...' : isRegister ? 'Regisztráció' : 'Bejelentkezés'}
+              {loading ? 'Kérlek várj...' : 'Bejelentkezés'}
             </Button>
           </form>
         </CardContent>
