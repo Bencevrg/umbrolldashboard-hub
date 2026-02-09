@@ -1,22 +1,19 @@
 
 
-# Kijelentkezesi gomb hozzaadasa a "Hozzaferes fuggobe" kepernyohoz
+# User szerep hozzarendelese a test@test.hu fiokhoz
 
-## Problema
+## Osszefoglalo
 
-Amikor egy meg nem jovahagyott felhasznalo bejelentkezik, a "Hozzaferes fuggoben" uzenetet latja, de nincs lehetosege kijelentkezni vagy masik fiokkal bejelentkezni. A felhasznalo "beragad" ezen az oldalon.
-
-## Megoldas
-
-A `src/components/auth/ProtectedRoute.tsx` fajlban a "Hozzaferes fuggoben" blokkhoz hozzaadunk egy **Kijelentkezes** gombot, ami meghivja a `signOut` fuggvenyt az `useAuth` hookbol, es visszairanyitja a felhasznalot a `/auth` oldalra.
+A `test@test.hu` felhasznalohoz hozzarendeljuk a "user" szerepet az adatbazisban, igy be tud majd jelentkezni es tesztelni tudod a normal felhasznaloi nezetetet.
 
 ## Technikai reszletek
 
-**Modositando fajl:** `src/components/auth/ProtectedRoute.tsx`
+Egyetlen SQL parancs futtatasa szukseges:
 
-Valtozasok:
-- Importaljuk a `Button` komponenst
-- A `useAuth` hookbol kinyerjuk a `signOut` fuggvenyt is
-- A "Hozzaferes fuggoben" uzenet ala elhelyezunk egy "Kijelentkezes" gombot
-- A gomb kattintasra meghivja a `signOut()`-ot, ami automatikusan a `/auth` oldalra iranyit (a meglevo logika szerint)
+```sql
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('75c1178b-2f0e-4f8b-8a0f-e3318f575576', 'user');
+```
+
+Ez a `test@test.hu` email cimu felhasznalonak ad "user" jogosultsagot. Ezutan be tudsz lepni ezzel a fiokkal es a normal felhasznaloi feluletet latod (nem admin).
 
