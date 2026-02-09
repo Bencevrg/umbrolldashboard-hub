@@ -2,8 +2,7 @@ import { useState, useCallback } from 'react';
 import { Partner, TopPartner, SleepingPartner, DashboardData, PartnerProductStat } from '@/types/partner';
 import { mockPartners } from '@/data/mockPartners';
 import { useToast } from '@/hooks/use-toast';
-
-const WEBHOOK_URL = 'https://bencevrg.app.n8n.cloud/webhook/6fe0821f-dfb6-4cf7-af45-ceafd4f830a2';
+import { supabase } from '@/integrations/supabase/client';
 
 // Csak mezőnevek normalizálása - SEMMI számítás!
 const normalizePartner = (p: Record<string, unknown>): Partner => ({
@@ -50,19 +49,11 @@ export const usePartnerData = () => {
   const fetchPartners = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action: 'getPartners' }),
-      });
+      const { data: responseData, error } = await supabase.functions.invoke('get-partners');
 
-      if (!response.ok) {
-        throw new Error(`HTTP hiba: ${response.status}`);
+      if (error) {
+        throw new Error(`Edge function hiba: ${error.message}`);
       }
-
-      const responseData = await response.json();
       
       // Nyers adatok - NINCS semmilyen számítás vagy szűrés!
       let partners: Partner[] = [];
