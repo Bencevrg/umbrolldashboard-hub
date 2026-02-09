@@ -1,1 +1,10 @@
 project_id = "xxufxmjlnzfutcffcikv"
+
+[functions.send-mfa-code]
+verify_jwt = false
+
+[functions.verify-mfa]
+verify_jwt = false
+
+[functions.invite-user]
+verify_jwt = false
