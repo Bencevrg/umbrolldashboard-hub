@@ -35,6 +35,9 @@ const normalizePartnerProductStat = (p: Record<string, unknown>): PartnerProduct
   db: Number(p.db ?? 0),
 });
 
+// Track whether initial fetch has already run (persists across navigations)
+let initialFetchDone = false;
+
 export const usePartnerData = () => {
   const [data, setData] = useState<DashboardData>({
     partners: mockPartners,
@@ -97,9 +100,12 @@ export const usePartnerData = () => {
     }
   }, [toast]);
 
-  // Auto-fetch on mount
+  // Auto-fetch only once per app session
   useEffect(() => {
-    fetchPartners();
+    if (!initialFetchDone) {
+      initialFetchDone = true;
+      fetchPartners();
+    }
   }, [fetchPartners]);
 
   return {
