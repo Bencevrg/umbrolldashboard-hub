@@ -1,5 +1,7 @@
 import { cn } from '@/lib/utils';
-import { Users, Trophy, AlertTriangle, Moon, BookOpen, MessageCircle, Package } from 'lucide-react';
+import { Users, Trophy, AlertTriangle, Moon, BookOpen, MessageCircle, Package, ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardNavProps {
   activeTab: string;
@@ -17,6 +19,9 @@ const tabs = [
 ];
 
 export const DashboardNav = ({ activeTab, onTabChange }: DashboardNavProps) => {
+  const { role } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -41,6 +46,15 @@ export const DashboardNav = ({ activeTab, onTabChange }: DashboardNavProps) => {
               </button>
             );
           })}
+          {role === 'admin' && (
+            <button
+              onClick={() => navigate('/admin/users')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all whitespace-nowrap text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span>Admin</span>
+            </button>
+          )}
         </div>
       </div>
     </nav>
