@@ -35,17 +35,18 @@ const normalizePartnerProductStat = (p: Record<string, unknown>): PartnerProduct
   db: Number(p.db ?? 0),
 });
 
-// Track which user we last fetched for (resets on user change / logout)
+// Module-level cache: survives component unmount/remount during navigation
 let lastFetchedForUser: string | null = null;
+let cachedData: DashboardData = {
+  partners: mockPartners,
+  topBest: [],
+  topWorst: [],
+  sleeping: [],
+  partnerProductStats: [],
+};
 
 export const usePartnerData = (userId?: string) => {
-  const [data, setData] = useState<DashboardData>({
-    partners: mockPartners,
-    topBest: [],
-    topWorst: [],
-    sleeping: [],
-    partnerProductStats: [],
-  });
+  const [data, setData] = useState<DashboardData>(cachedData);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -82,7 +83,9 @@ export const usePartnerData = (userId?: string) => {
         partnerProductStats = (Array.isArray(partnerProductStatsRaw) ? partnerProductStatsRaw : []).map((p: Record<string, unknown>) => normalizePartnerProductStat(p));
       }
 
-      setData({ partners, topBest, topWorst, sleeping, partnerProductStats });
+      const newData = { partners, topBest, topWorst, sleeping, partnerProductStats };
+      cachedData = newData;
+      setData(newData);
       
       toast({
         title: 'Sikeres frissítés',
@@ -108,6 +111,7 @@ export const usePartnerData = (userId?: string) => {
     }
     if (!userId) {
       lastFetchedForUser = null;
+      cachedData = { partners: mockPartners, topBest: [], topWorst: [], sleeping: [], partnerProductStats: [] };
     }
   }, [userId, fetchPartners]);
 
