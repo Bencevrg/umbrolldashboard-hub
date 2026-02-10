@@ -15,7 +15,7 @@ import { ProductCategoriesPage } from '@/components/dashboard/ProductCategoriesP
 import { StatsGridSkeleton, ChartSkeleton, TableSkeleton, EmptyState } from '@/components/dashboard/DashboardSkeletons';
 import { usePartnerData } from '@/hooks/usePartnerData';
 import { Partner, PartnerStats, ChatMessage } from '@/types/partner';
-import { Users, TrendingUp, FileCheck, Moon, Target, AlertTriangle, Trophy, Clock } from 'lucide-react';
+import { Users, TrendingUp, FileCheck, Moon, Target, AlertTriangle, Trophy, Clock, Loader2 } from 'lucide-react';
 
 const Index = () => {
   const { user } = useAuth();
@@ -72,16 +72,10 @@ const Index = () => {
       case 'partners':
         if (isLoading && !hasFetched) {
           return (
-            <>
-              <section className="mb-8">
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">Áttekintés</h2>
-                </div>
-                <StatsGridSkeleton />
-              </section>
-              <section className="mb-8"><ChartSkeleton /></section>
-              <section><TableSkeleton /></section>
-            </>
+            <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
+              <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+              <p className="text-lg text-muted-foreground">Adatok betöltése...</p>
+            </div>
           );
         }
         if (hasFetched && partners.length === 0) {
@@ -119,7 +113,12 @@ const Index = () => {
 
       case 'best': {
         if (isLoading && !hasFetched) {
-          return (<><TableSkeleton /></>);
+          return (
+            <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
+              <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+              <p className="text-lg text-muted-foreground">Adatok betöltése...</p>
+            </div>
+          );
         }
         const bestData = topBest.length > 0 ? topBest : partners.slice().sort((a, b) => b.ertek_pontszam - a.ertek_pontszam);
         if (hasFetched && bestData.length === 0) {
@@ -148,7 +147,12 @@ const Index = () => {
 
       case 'worst': {
         if (isLoading && !hasFetched) {
-          return (<><TableSkeleton /></>);
+          return (
+            <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
+              <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+              <p className="text-lg text-muted-foreground">Adatok betöltése...</p>
+            </div>
+          );
         }
         const worstData = topWorst.length > 0 ? topWorst : partners.slice().sort((a, b) => b.sikertelen_pontszam - a.sikertelen_pontszam);
         if (hasFetched && worstData.length === 0) {
@@ -177,7 +181,12 @@ const Index = () => {
 
       case 'sleeping': {
         if (isLoading && !hasFetched) {
-          return (<><TableSkeleton /></>);
+          return (
+            <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
+              <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+              <p className="text-lg text-muted-foreground">Adatok betöltése...</p>
+            </div>
+          );
         }
         if (hasFetched && filteredSleeping.length === 0 && partners.length === 0) {
           return (
