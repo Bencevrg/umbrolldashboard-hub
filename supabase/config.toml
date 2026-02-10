@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.get-partners]
 verify_jwt = false
+
+[functions.admin-users]
+verify_jwt = false

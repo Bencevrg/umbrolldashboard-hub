@@ -7,6 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
@@ -16,6 +20,7 @@ interface UserRole {
   id: string;
   user_id: string;
   role: 'admin' | 'user';
+  email?: string;
   created_at: string;
 }
 
@@ -36,17 +41,21 @@ const AdminUsers = () => {
   const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState<'admin' | 'user'>('user');
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const [rolesRes, invRes] = await Promise.all([
-      supabase.from('user_roles').select('*'),
+    const [usersRes, invRes] = await Promise.all([
+      supabase.functions.invoke('admin-users', { body: { action: 'list' } }),
       supabase.from('user_invitations').select('*').order('created_at', { ascending: false }),
     ]);
-    if (rolesRes.data) setRoles(rolesRes.data as UserRole[]);
+    if (usersRes.data && !usersRes.error) {
+      const data = usersRes.data as { error?: string } | UserRole[];
+      if (!('error' in data)) setRoles(data as UserRole[]);
+    }
     if (invRes.data) setInvitations(invRes.data as Invitation[]);
   };
 
@@ -55,16 +64,11 @@ const AdminUsers = () => {
     setLoading(true);
     try {
       const response = await supabase.functions.invoke('invite-user', {
-        body: {
-          action: 'invite',
-          email: newEmail,
-          role: newRole,
-        },
+        body: { action: 'invite', email: newEmail, role: newRole },
       });
       if (response.error) throw response.error;
       const data = response.data as { error?: string };
       if (data.error) throw new Error(data.error);
-
       toast({ title: 'Meghívó elküldve', description: `Meghívó elküldve: ${newEmail}` });
       setNewEmail('');
       fetchData();
@@ -86,6 +90,24 @@ const AdminUsers = () => {
     toast({ title: 'Szerep módosítva' });
   };
 
+  const deleteUser = async (userId: string) => {
+    setDeletingId(userId);
+    try {
+      const res = await supabase.functions.invoke('admin-users', {
+        body: { action: 'delete', userId },
+      });
+      if (res.error) throw res.error;
+      const data = res.data as { error?: string; success?: boolean };
+      if (data.error) throw new Error(data.error);
+      toast({ title: 'Felhasználó törölve' });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: 'Hiba', description: error.message, variant: 'destructive' });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <DashboardLayout activeTab="admin" onTabChange={(tab) => navigate(`/?tab=${tab}`)}>
       <div className="space-y-8">
@@ -99,25 +121,16 @@ const AdminUsers = () => {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-3">
-              <Input
-                type="email"
-                placeholder="Email cím"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                className="max-w-xs"
-              />
+              <Input type="email" placeholder="Email cím" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="max-w-xs" />
               <Select value={newRole} onValueChange={(v: 'admin' | 'user') => setNewRole(v)}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="user">User</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
               <Button onClick={sendInvite} disabled={loading || !newEmail}>
-                <Send className="h-4 w-4 mr-2" />
-                Meghívó küldése
+                <Send className="h-4 w-4 mr-2" />Meghívó küldése
               </Button>
             </div>
           </CardContent>
@@ -133,6 +146,7 @@ const AdminUsers = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>User ID</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Szerep</TableHead>
                   <TableHead>Műveletek</TableHead>
                 </TableRow>
@@ -141,23 +155,43 @@ const AdminUsers = () => {
                 {roles.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="font-mono text-xs">{r.user_id.slice(0, 8)}...</TableCell>
+                    <TableCell className="text-sm">{r.email || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant={r.role === 'admin' ? 'default' : 'secondary'}>{r.role}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={r.role}
-                        onValueChange={(v: 'admin' | 'user') => updateRole(r.id, v)}
-                        disabled={r.user_id === user?.id}
-                      >
-                        <SelectTrigger className="w-28">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="user">User</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Select value={r.role} onValueChange={(v: 'admin' | 'user') => updateRole(r.id, v)} disabled={r.user_id === user?.id}>
+                          <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">User</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {r.user_id !== user?.id && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" disabled={deletingId === r.user_id}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Felhasználó törlése</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Biztosan törölni szeretnéd ezt a felhasználót ({r.email || r.user_id.slice(0, 8)})? Ez a művelet nem vonható vissza.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Mégse</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteUser(r.user_id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                  Törlés
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -186,17 +220,9 @@ const AdminUsers = () => {
                 {invitations.map((inv) => (
                   <TableRow key={inv.id}>
                     <TableCell>{inv.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={inv.role === 'admin' ? 'default' : 'secondary'}>{inv.role}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={inv.used ? 'secondary' : 'outline'}>
-                        {inv.used ? 'Felhasználva' : 'Aktív'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(inv.expires_at).toLocaleDateString('hu-HU')}
-                    </TableCell>
+                    <TableCell><Badge variant={inv.role === 'admin' ? 'default' : 'secondary'}>{inv.role}</Badge></TableCell>
+                    <TableCell><Badge variant={inv.used ? 'secondary' : 'outline'}>{inv.used ? 'Felhasználva' : 'Aktív'}</Badge></TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{new Date(inv.expires_at).toLocaleDateString('hu-HU')}</TableCell>
                     <TableCell>
                       {!inv.used && (
                         <Button variant="ghost" size="icon" onClick={() => deleteInvitation(inv.id)}>
