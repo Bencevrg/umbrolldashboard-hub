@@ -71,11 +71,34 @@ const AcceptInvite = () => {
         console.warn('Could not auto-assign role:', fnError);
       }
 
-      toast({
-        title: 'Regisztráció sikeres',
-        description: 'Kérjük, erősítsd meg az email címedet a kiküldött linkkel.',
-      });
-      navigate('/auth');
+      // If session is returned (auto-confirm enabled), user is already logged in
+      if (signUpData.session) {
+        toast({
+          title: 'Regisztráció sikeres',
+          description: 'Üdvözlünk!',
+        });
+        navigate('/');
+      } else {
+        // Auto-login after registration
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: invitation.email,
+          password,
+        });
+        if (loginError) {
+          // If auto-login fails (e.g. email confirmation required), redirect to auth
+          toast({
+            title: 'Regisztráció sikeres',
+            description: 'Kérjük, erősítsd meg az email címedet a kiküldött linkkel.',
+          });
+          navigate('/auth');
+        } else {
+          toast({
+            title: 'Regisztráció sikeres',
+            description: 'Üdvözlünk!',
+          });
+          navigate('/');
+        }
+      }
     } catch (error: any) {
       toast({ title: 'Hiba', description: error.message, variant: 'destructive' });
     } finally {
