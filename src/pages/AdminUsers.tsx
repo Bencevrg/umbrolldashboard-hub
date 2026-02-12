@@ -14,7 +14,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { UserPlus, Send, Trash2 } from 'lucide-react';
+import { UserPlus, Send, Trash2, Search } from 'lucide-react';
 
 interface UserRole {
   id: string;
@@ -29,6 +29,7 @@ interface Invitation {
   email: string;
   role: 'admin' | 'user';
   used: boolean;
+  deleted: boolean;
   expires_at: string;
 }
 
@@ -42,6 +43,7 @@ const AdminUsers = () => {
   const [newRole, setNewRole] = useState<'admin' | 'user'>('user');
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [searchEmail, setSearchEmail] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -108,6 +110,10 @@ const AdminUsers = () => {
     }
   };
 
+  const filteredRoles = roles.filter((r) =>
+    !searchEmail || (r.email || '').toLowerCase().includes(searchEmail.toLowerCase())
+  );
+
   return (
     <DashboardLayout activeTab="admin" onTabChange={(tab) => navigate(`/?tab=${tab}`)}>
       <div className="space-y-8">
@@ -139,9 +145,18 @@ const AdminUsers = () => {
         {/* Users Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Felhasználók ({roles.length})</CardTitle>
+            <CardTitle>Felhasználók ({filteredRoles.length})</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="mb-4 relative max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Keresés email alapján..."
+                value={searchEmail}
+                onChange={(e) => setSearchEmail(e.target.value)}
+                className="pl-9"
+              />
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -152,7 +167,7 @@ const AdminUsers = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {roles.map((r) => (
+                {filteredRoles.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="font-mono text-xs">{r.user_id.slice(0, 8)}...</TableCell>
                     <TableCell className="text-sm">{r.email || 'N/A'}</TableCell>
@@ -221,7 +236,11 @@ const AdminUsers = () => {
                   <TableRow key={inv.id}>
                     <TableCell>{inv.email}</TableCell>
                     <TableCell><Badge variant={inv.role === 'admin' ? 'default' : 'secondary'}>{inv.role}</Badge></TableCell>
-                    <TableCell><Badge variant={inv.used ? 'secondary' : 'outline'}>{inv.used ? 'Felhasználva' : 'Aktív'}</Badge></TableCell>
+                    <TableCell>
+                      <Badge variant={inv.deleted ? 'destructive' : inv.used ? 'secondary' : 'outline'}>
+                        {inv.deleted ? 'Törölve' : inv.used ? 'Felhasználva' : 'Aktív'}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{new Date(inv.expires_at).toLocaleDateString('hu-HU')}</TableCell>
                     <TableCell>
                       {!inv.used && (

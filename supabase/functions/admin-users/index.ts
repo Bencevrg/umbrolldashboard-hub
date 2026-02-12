@@ -109,10 +109,21 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Get user email before deleting
+      const { data: authUser } = await serviceClient.auth.admin.getUserById(userId);
+      const userEmail = authUser?.user?.email;
+
       // Delete MFA settings
       await serviceClient.from("user_mfa_settings").delete().eq("user_id", userId);
       // Delete role
       await serviceClient.from("user_roles").delete().eq("user_id", userId);
+      // Mark invitation as deleted
+      if (userEmail) {
+        await serviceClient
+          .from("user_invitations")
+          .update({ deleted: true })
+          .eq("email", userEmail);
+      }
       // Delete auth user
       const { error: deleteError } = await serviceClient.auth.admin.deleteUser(userId);
       if (deleteError) throw deleteError;
