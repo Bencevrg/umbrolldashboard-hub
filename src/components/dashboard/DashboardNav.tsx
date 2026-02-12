@@ -11,7 +11,7 @@ interface DashboardNavProps {
 const tabs = [
   { id: 'partners', label: 'Partnerek', icon: Users },
   { id: 'best', label: 'Legértékesebb', icon: Trophy },
-  { id: 'worst', label: 'Időhúzók', icon: AlertTriangle },
+  { id: 'worst', label: 'Kevésbé értékesek', icon: AlertTriangle },
   { id: 'sleeping', label: 'Alvó partnerek', icon: Moon },
   { id: 'categories', label: 'Árajánlatok kategóriák', icon: Package },
   { id: 'chat', label: 'Chat', icon: MessageCircle },

@@ -115,6 +115,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_data: { Args: never; Returns: undefined }
       get_invitation_by_token: {
         Args: { _token: string }
         Returns: {
