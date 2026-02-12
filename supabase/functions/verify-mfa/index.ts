@@ -84,19 +84,19 @@ Deno.serve(async (req) => {
     if (mfaType === "email") {
       // Check email code
       if ((mfa.email_code_attempts ?? 0) >= 5) {
-        return new Response(JSON.stringify({ verified: false, error: "Túl sok próbálkozás. Kérj új kódot." }), {
+        return new Response(JSON.stringify({ verified: false, error: "Túl sok próbálkozás. Próbálj meg új kódot kérni." }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       if (!mfa.email_code || !mfa.email_code_expires_at) {
-        return new Response(JSON.stringify({ verified: false, error: "Nincs aktív kód. Kérj újat." }), {
+        return new Response(JSON.stringify({ verified: false, error: "Nincs aktív kód. Próbálj meg új kódot kérni." }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       if (new Date(mfa.email_code_expires_at) < new Date()) {
-        return new Response(JSON.stringify({ verified: false, error: "A kód lejárt. Kérj újat." }), {
+        return new Response(JSON.stringify({ verified: false, error: "A kód lejárt. Próbálj meg új kódot kérni." }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
           .update({ email_code_attempts: (mfa.email_code_attempts ?? 0) + 1 })
           .eq("user_id", userId);
 
-        return new Response(JSON.stringify({ verified: false, error: "Hibás kód" }), {
+        return new Response(JSON.stringify({ verified: false, error: "Hibás kód. Próbálj meg új kódot kérni." }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
