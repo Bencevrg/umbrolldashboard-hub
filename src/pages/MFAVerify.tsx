@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { translateError } from '@/lib/errorMessages';
 
 const MFAVerify = () => {
   const { user, session, mfaRequired, mfaVerified, setMfaVerified, signOut, loading: authLoading } = useAuth();
@@ -54,7 +55,7 @@ const MFAVerify = () => {
     } catch (error: any) {
       toast({
         title: 'Hiba',
-        description: error?.message || 'Nem sikerült elküldeni a kódot. Ellenőrizd, hogy be van-e állítva az email szolgáltatás.',
+        description: translateError(error?.message) || 'Nem sikerült elküldeni a kódot. Ellenőrizd, hogy be van-e állítva az email szolgáltatás.',
         variant: 'destructive',
       });
     }
@@ -76,7 +77,7 @@ const MFAVerify = () => {
         toast({ title: 'Hibás kód', description: data.error || 'Próbáld újra.', variant: 'destructive' });
       }
     } catch (error: any) {
-      toast({ title: 'Hiba', description: error.message, variant: 'destructive' });
+      toast({ title: 'Hiba', description: translateError(error.message), variant: 'destructive' });
     } finally {
       setLoading(false);
     }

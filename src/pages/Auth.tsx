@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { translateError } from '@/lib/errorMessages';
 import umbrollLogo from '@/assets/umbroll-logo.png';
 
 const Auth = () => {
@@ -35,7 +36,7 @@ const Auth = () => {
     } catch (error: any) {
       toast({
         title: 'Hiba',
-        description: error.message,
+        description: translateError(error.message),
         variant: 'destructive',
       });
     } finally {

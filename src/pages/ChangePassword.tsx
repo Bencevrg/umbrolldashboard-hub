@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Key, AlertCircle, CheckCircle } from 'lucide-react';
 import { validatePassword, PASSWORD_REQUIREMENTS } from '@/lib/passwordValidation';
+import { translateError } from '@/lib/errorMessages';
 
 const ChangePassword = () => {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ const ChangePassword = () => {
       });
 
       if (updateError) {
-        setError(updateError.message);
+        setError(translateError(updateError.message));
         setLoading(false);
         return;
       }
