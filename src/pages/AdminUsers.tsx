@@ -21,7 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { UserPlus, Send, Trash2, Search, Loader2 } from "lucide-react"; // Loader2 hozzáadva
+import { UserPlus, Send, Trash2, Search } from "lucide-react";
 import { translateError } from "@/lib/errorMessages";
 
 interface UserRole {
@@ -60,7 +60,10 @@ const AdminUsers = () => {
   const fetchData = async () => {
     const [usersRes, invRes] = await Promise.all([
       supabase.functions.invoke("admin-users", { body: { action: "list" } }),
-      supabase.from("user_invitations").select("*").order("created_at", { ascending: false }),
+      supabase
+        .from("user_invitations")
+        .select("id, email, role, used, deleted, expires_at, created_at") // <--- NINCS TOKEN
+        .order("created_at", { ascending: false }),
     ]);
     if (usersRes.data && !usersRes.error) {
       const data = usersRes.data as { error?: string } | UserRole[];
@@ -89,34 +92,15 @@ const AdminUsers = () => {
     }
   };
 
-  // --- JAVÍTVA: Backend hívás közvetlen DB törlés helyett ---
   const deleteInvitation = async (id: string) => {
-    try {
-      const { error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "deleteInvitation", id },
-      });
-      if (error) throw error;
-      fetchData();
-      toast({ title: "Meghívó törölve" });
-    } catch (error: any) {
-      toast({ title: "Hiba", description: "Nem sikerült törölni a meghívót.", variant: "destructive" });
-    }
+    await supabase.from("user_invitations").delete().eq("id", id);
+    fetchData();
   };
 
-  // --- JAVÍTVA: Backend hívás közvetlen DB update helyett ---
-  const updateRole = async (userId: string, newRoleValue: "admin" | "user") => {
-    try {
-      const { error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "update", userId, role: newRoleValue },
-      });
-
-      if (error) throw error;
-
-      fetchData();
-      toast({ title: "Szerep módosítva" });
-    } catch (error: any) {
-      toast({ title: "Hiba", description: "Nem sikerült módosítani a jogosultságot.", variant: "destructive" });
-    }
+  const updateRole = async (roleId: string, newRoleValue: "admin" | "user") => {
+    await supabase.from("user_roles").update({ role: newRoleValue }).eq("id", roleId);
+    fetchData();
+    toast({ title: "Szerep módosítva" });
   };
 
   const deleteUser = async (userId: string) => {
@@ -212,10 +196,9 @@ const AdminUsers = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {/* JAVÍTVA: Itt most a user_id-t adjuk át, nem az r.id-t! */}
                         <Select
                           value={r.role}
-                          onValueChange={(v: "admin" | "user") => updateRole(r.user_id, v)}
+                          onValueChange={(v: "admin" | "user") => updateRole(r.id, v)}
                           disabled={r.user_id === user?.id}
                         >
                           <SelectTrigger className="w-28">
