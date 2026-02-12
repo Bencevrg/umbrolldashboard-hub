@@ -21,7 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { UserPlus, Send, Trash2, Search } from "lucide-react";
+import { UserPlus, Send, Trash2, Search, Loader2 } from "lucide-react"; // Loader2 hozzáadva a töltéshez
 import { translateError } from "@/lib/errorMessages";
 
 interface UserRole {
@@ -51,6 +51,7 @@ const AdminUsers = () => {
   const [newRole, setNewRole] = useState<"admin" | "user">("user");
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null); // Új state a gombok töltéséhez
   const [searchEmail, setSearchEmail] = useState("");
 
   useEffect(() => {
@@ -60,11 +61,13 @@ const AdminUsers = () => {
   const fetchData = async () => {
     const [usersRes, invRes] = await Promise.all([
       supabase.functions.invoke("admin-users", { body: { action: "list" } }),
+      // JAVÍTÁS 1: Nem kérjük le a '*' (mindent), hogy a 'token' ne kerüljön a frontendhez
       supabase
         .from("user_invitations")
-        .select("id, email, role, used, deleted, expires_at, created_at") // <--- NINCS TOKEN
+        .select("id, email, role, used, deleted, expires_at, created_at")
         .order("created_at", { ascending: false }),
     ]);
+
     if (usersRes.data && !usersRes.error) {
       const data = usersRes.data as { error?: string } | UserRole[];
       if (!("error" in data)) setRoles(data as UserRole[]);
@@ -92,15 +95,39 @@ const AdminUsers = () => {
     }
   };
 
+  // JAVÍTÁS 2: Edge Function használata a közvetlen DB törlés helyett
   const deleteInvitation = async (id: string) => {
-    await supabase.from("user_invitations").delete().eq("id", id);
-    fetchData();
+    try {
+      const { error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "deleteInvitation", id },
+      });
+
+      if (error) throw error;
+
+      toast({ title: "Meghívó törölve" });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Hiba", description: "Nem sikerült törölni a meghívót.", variant: "destructive" });
+    }
   };
 
-  const updateRole = async (roleId: string, newRoleValue: "admin" | "user") => {
-    await supabase.from("user_roles").update({ role: newRoleValue }).eq("id", roleId);
-    fetchData();
-    toast({ title: "Szerep módosítva" });
+  // JAVÍTÁS 3: Edge Function használata a közvetlen DB update helyett
+  const updateRole = async (userId: string, newRoleValue: "admin" | "user") => {
+    setActionLoading(userId);
+    try {
+      const { error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "update", userId, role: newRoleValue },
+      });
+
+      if (error) throw error;
+
+      toast({ title: "Szerep módosítva" });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Hiba", description: "Nem sikerült módosítani a jogosultságot.", variant: "destructive" });
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const deleteUser = async (userId: string) => {
@@ -155,7 +182,7 @@ const AdminUsers = () => {
                 </SelectContent>
               </Select>
               <Button onClick={sendInvite} disabled={loading || !newEmail}>
-                <Send className="h-4 w-4 mr-2" />
+                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
                 Meghívó küldése
               </Button>
             </div>
@@ -196,24 +223,34 @@ const AdminUsers = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
+                        {/* JAVÍTVA: r.user_id átadása r.id helyett, és loading kezelés */}
                         <Select
                           value={r.role}
-                          onValueChange={(v: "admin" | "user") => updateRole(r.id, v)}
-                          disabled={r.user_id === user?.id}
+                          onValueChange={(v: "admin" | "user") => updateRole(r.user_id, v)}
+                          disabled={r.user_id === user?.id || actionLoading === r.user_id}
                         >
                           <SelectTrigger className="w-28">
-                            <SelectValue />
+                            {actionLoading === r.user_id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <SelectValue />
+                            )}
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="user">User</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
                           </SelectContent>
                         </Select>
+
                         {r.user_id !== user?.id && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" disabled={deletingId === r.user_id}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
+                                {deletingId === r.user_id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                )}
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
