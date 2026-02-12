@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import umbrollLogo from '@/assets/umbroll-logo.png';
 import { validatePassword, PASSWORD_REQUIREMENTS } from '@/lib/passwordValidation';
+import { translateError } from '@/lib/errorMessages';
 
 interface InvitationData {
   id: string;
@@ -100,7 +101,7 @@ const AcceptInvite = () => {
         }
       }
     } catch (error: any) {
-      toast({ title: 'Hiba', description: error.message, variant: 'destructive' });
+      toast({ title: 'Hiba', description: translateError(error.message), variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }

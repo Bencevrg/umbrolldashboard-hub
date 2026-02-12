@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { UserPlus, Send, Trash2, Search } from 'lucide-react';
+import { translateError } from '@/lib/errorMessages';
 
 interface UserRole {
   id: string;
@@ -75,7 +76,7 @@ const AdminUsers = () => {
       setNewEmail('');
       fetchData();
     } catch (error: any) {
-      toast({ title: 'Hiba', description: error.message, variant: 'destructive' });
+      toast({ title: 'Hiba', description: translateError(error.message), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -104,7 +105,7 @@ const AdminUsers = () => {
       toast({ title: 'Felhasználó törölve' });
       fetchData();
     } catch (error: any) {
-      toast({ title: 'Hiba', description: error.message, variant: 'destructive' });
+      toast({ title: 'Hiba', description: translateError(error.message), variant: 'destructive' });
     } finally {
       setDeletingId(null);
     }

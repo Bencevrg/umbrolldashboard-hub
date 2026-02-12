@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Shield, Mail } from 'lucide-react';
+import { translateError } from '@/lib/errorMessages';
 import { QRCodeSVG } from 'qrcode.react';
 
 const MFASetup = () => {
@@ -31,7 +32,7 @@ const MFASetup = () => {
       setTotpUri(uri);
       setSelectedType('totp');
     } catch (error: any) {
-      toast({ title: 'Hiba', description: error.message, variant: 'destructive' });
+      toast({ title: 'Hiba', description: translateError(error.message), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -52,7 +53,7 @@ const MFASetup = () => {
       toast({ title: 'Email 2FA beállítva', description: 'Bejelentkezéskor email kódot kapsz.' });
       navigate('/');
     } catch (error: any) {
-      toast({ title: 'Hiba', description: error.message, variant: 'destructive' });
+      toast({ title: 'Hiba', description: translateError(error.message), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -89,7 +90,7 @@ const MFASetup = () => {
       toast({ title: 'TOTP 2FA beállítva', description: 'A kétlépcsős azonosítás aktív.' });
       navigate('/');
     } catch (error: any) {
-      toast({ title: 'Hiba', description: error.message, variant: 'destructive' });
+      toast({ title: 'Hiba', description: translateError(error.message), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
