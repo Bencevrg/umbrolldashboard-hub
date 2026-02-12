@@ -112,7 +112,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_mfa_status: {
+        Row: {
+          created_at: string | null
+          is_verified: boolean | null
+          mfa_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          is_verified?: boolean | null
+          mfa_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          is_verified?: boolean | null
+          mfa_type?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_old_data: { Args: never; Returns: undefined }
