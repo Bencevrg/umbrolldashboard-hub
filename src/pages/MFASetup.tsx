@@ -41,7 +41,7 @@ const MFASetup = () => {
     setLoading(true);
     try {
       // JAVÍTÁS: RPC hívás upsert helyett
-      const { error } = await supabase.rpc("save_mfa_settings", {
+      const { error } = await supabase.rpc("save_mfa_settings" as any, {
         p_mfa_type: "email",
         p_totp_secret: null,
         p_is_verified: true,
@@ -64,7 +64,7 @@ const MFASetup = () => {
     setLoading(true);
     try {
       // 1. Mentés (Nem verifikált) - JAVÍTÁS: RPC hívás
-      const { error: saveError } = await supabase.rpc("save_mfa_settings", {
+      const { error: saveError } = await supabase.rpc("save_mfa_settings" as any, {
         p_mfa_type: "totp",
         p_totp_secret: totpSecret,
         p_is_verified: false,
@@ -84,7 +84,7 @@ const MFASetup = () => {
       }
 
       // 3. Véglegesítés (Verifikált) - JAVÍTÁS: RPC hívás
-      const { error: finalError } = await supabase.rpc("save_mfa_settings", {
+      const { error: finalError } = await supabase.rpc("save_mfa_settings" as any, {
         p_mfa_type: "totp",
         p_totp_secret: totpSecret,
         p_is_verified: true,
