@@ -1,38 +1,36 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { Shield, Mail } from 'lucide-react';
-import { translateError } from '@/lib/errorMessages';
-import { QRCodeSVG } from 'qrcode.react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { Shield, Mail, Loader2 } from "lucide-react";
+import { translateError } from "@/lib/errorMessages";
+import { QRCodeSVG } from "qrcode.react";
 
 const MFASetup = () => {
   const { user, mfaConfigured, refreshRole } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [selectedType, setSelectedType] = useState<'totp' | 'email' | null>(null);
+  const [selectedType, setSelectedType] = useState<"totp" | "email" | null>(null);
   const [totpUri, setTotpUri] = useState<string | null>(null);
   const [totpSecret, setTotpSecret] = useState<string | null>(null);
-  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationCode, setVerificationCode] = useState("");
 
   const setupTotp = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      // Generate a TOTP secret but DON'T write to DB yet
-      // Only save after successful verification to avoid overwriting existing verified MFA
       const secret = generateTotpSecret();
       const uri = `otpauth://totp/Umbroll:${user.email}?secret=${secret}&issuer=Umbroll`;
 
       setTotpSecret(secret);
       setTotpUri(uri);
-      setSelectedType('totp');
+      setSelectedType("totp");
     } catch (error: any) {
-      toast({ title: 'Hiba', description: translateError(error.message), variant: 'destructive' });
+      toast({ title: "Hiba", description: translateError(error.message), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -42,18 +40,20 @@ const MFASetup = () => {
     if (!user) return;
     setLoading(true);
     try {
-      await supabase.from('user_mfa_settings').upsert({
-        user_id: user.id,
-        mfa_type: 'email',
-        is_verified: true,
-        totp_secret: null,
-      }, { onConflict: 'user_id' });
+      // JAVÍTÁS: RPC hívás upsert helyett
+      const { error } = await supabase.rpc("save_mfa_settings", {
+        p_mfa_type: "email",
+        p_totp_secret: null,
+        p_is_verified: true,
+      });
+
+      if (error) throw error;
 
       await refreshRole();
-      toast({ title: 'Email 2FA beállítva', description: 'Bejelentkezéskor email kódot kapsz.' });
-      navigate('/');
+      toast({ title: "Email 2FA beállítva", description: "Bejelentkezéskor email kódot kapsz." });
+      navigate("/");
     } catch (error: any) {
-      toast({ title: 'Hiba', description: translateError(error.message), variant: 'destructive' });
+      toast({ title: "Hiba", description: translateError(error.message), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -63,40 +63,46 @@ const MFASetup = () => {
     if (!user || !totpSecret) return;
     setLoading(true);
     try {
-      // First save the secret temporarily so the edge function can verify
-      await supabase.from('user_mfa_settings').upsert({
-        user_id: user.id,
-        mfa_type: 'totp',
-        totp_secret: totpSecret,
-        is_verified: false,
-      }, { onConflict: 'user_id' });
+      // 1. Mentés (Nem verifikált) - JAVÍTÁS: RPC hívás
+      const { error: saveError } = await supabase.rpc("save_mfa_settings", {
+        p_mfa_type: "totp",
+        p_totp_secret: totpSecret,
+        p_is_verified: false,
+      });
 
-      const { data, error } = await supabase.functions.invoke('verify-mfa', {
-        body: { userId: user.id, code: verificationCode, mfaType: 'totp' },
+      if (saveError) throw saveError;
+
+      // 2. Kód ellenőrzés (Edge Function)
+      const { data, error } = await supabase.functions.invoke("verify-mfa", {
+        body: { userId: user.id, code: verificationCode, mfaType: "totp" },
       });
 
       if (error || !data?.verified) {
-        toast({ title: 'Hibás kód', description: data?.error || 'Kérjük, próbáld újra.', variant: 'destructive' });
+        toast({ title: "Hibás kód", description: data?.error || "Kérjük, próbáld újra.", variant: "destructive" });
         setLoading(false);
         return;
       }
 
-      // Only mark as verified after successful code check
-      await supabase.from('user_mfa_settings').update({
-        is_verified: true,
-      }).eq('user_id', user.id);
+      // 3. Véglegesítés (Verifikált) - JAVÍTÁS: RPC hívás
+      const { error: finalError } = await supabase.rpc("save_mfa_settings", {
+        p_mfa_type: "totp",
+        p_totp_secret: totpSecret,
+        p_is_verified: true,
+      });
+
+      if (finalError) throw finalError;
 
       await refreshRole();
-      toast({ title: 'TOTP 2FA beállítva', description: 'A kétlépcsős azonosítás aktív.' });
-      navigate('/');
+      toast({ title: "TOTP 2FA beállítva", description: "A kétlépcsős azonosítás aktív." });
+      navigate("/");
     } catch (error: any) {
-      toast({ title: 'Hiba', description: translateError(error.message), variant: 'destructive' });
+      toast({ title: "Hiba", description: translateError(error.message), variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-  if (selectedType === 'totp' && totpUri) {
+  if (selectedType === "totp" && totpUri) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md shadow-card">
@@ -114,7 +120,12 @@ const MFASetup = () => {
               <p className="text-xs text-muted-foreground mb-2">Vagy másold be kézzel a titkos kulcsot:</p>
               <code className="text-sm font-mono break-all">{totpSecret}</code>
             </div>
-            <form onSubmit={(e) => { e.preventDefault(); verifyTotp(); }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                verifyTotp();
+              }}
+            >
               <div className="mb-4">
                 <input
                   type="text"
@@ -126,10 +137,19 @@ const MFASetup = () => {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading || verificationCode.length !== 6}>
-                {loading ? 'Ellenőrzés...' : 'Megerősítés'}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Megerősítés"}
               </Button>
             </form>
-            <Button variant="ghost" className="w-full" onClick={() => { setSelectedType(null); setTotpUri(null); setTotpSecret(null); setVerificationCode(''); }}>
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                setSelectedType(null);
+                setTotpUri(null);
+                setTotpSecret(null);
+                setVerificationCode("");
+              }}
+            >
               Vissza
             </Button>
           </CardContent>
@@ -173,7 +193,7 @@ const MFASetup = () => {
           </Button>
 
           {mfaConfigured && (
-            <Button variant="ghost" className="w-full" onClick={() => navigate('/')}>
+            <Button variant="ghost" className="w-full" onClick={() => navigate("/")}>
               Vissza
             </Button>
           )}
@@ -184,8 +204,8 @@ const MFASetup = () => {
 };
 
 function generateTotpSecret(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  let secret = '';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let secret = "";
   const arr = new Uint8Array(20);
   crypto.getRandomValues(arr);
   for (let i = 0; i < 20; i++) {
