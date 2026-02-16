@@ -112,27 +112,7 @@ export type Database = {
       }
     }
     Views: {
-      user_mfa_status: {
-        Row: {
-          created_at: string | null
-          is_verified: boolean | null
-          mfa_type: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          is_verified?: boolean | null
-          mfa_type?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          is_verified?: boolean | null
-          mfa_type?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       cleanup_old_data: { Args: never; Returns: undefined }
@@ -161,6 +141,14 @@ export type Database = {
         Returns: boolean
       }
       is_approved_user: { Args: { _user_id: string }; Returns: boolean }
+      save_mfa_settings: {
+        Args: {
+          p_is_verified: boolean
+          p_mfa_type: string
+          p_totp_secret: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"
