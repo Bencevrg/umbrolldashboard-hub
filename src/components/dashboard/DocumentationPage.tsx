@@ -4,237 +4,305 @@ import { Separator } from '@/components/ui/separator';
 export const DocumentationPage = () => {
   return (
     <div className="space-y-6">
-      {/* Partners Table */}
+      {/* Intro */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">1) Partners tábla – összesített partner statisztika</CardTitle>
+          <CardTitle className="text-2xl">Umbroll Dashboard – Leírás</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            Ez a fő tábla. Minden sor egy partner (ügyfél).
+            Ez a dashboard az árajánlatok alapján készített partner-statisztikákat és toplistákat mutat. A cél, hogy gyorsan lásd:
+          </p>
+          <ul className="list-disc list-inside text-muted-foreground space-y-1">
+            <li>mely partnerek a legértékesebbek az árajánlatok szempontjából,</li>
+            <li>kiknél "folyik el" a legtöbb idő (sok árajánlat, de kevés siker),</li>
+            <li>kik az "alvó" partnerek,</li>
+            <li>és milyen termékkategóriákban (területeken) jönnek a sikeres árajánlatok.</li>
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* Alapfogalmak */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">0) Alapfogalmak (hogyan értelmezzük az adatokat)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div>
+              <h4 className="font-medium">Árajánlat</h4>
+              <p className="text-muted-foreground text-sm">Egy partnerhez tartozó árajánlatkérés.</p>
+            </div>
+            <div>
+              <h4 className="font-medium">Sikeres árajánlat</h4>
+              <p className="text-muted-foreground text-sm">Olyan árajánlat, amelyhez tartozik legalább 1 al-ügy (al-ticket).</p>
+            </div>
+            <div>
+              <h4 className="font-medium">Sikertelen árajánlat</h4>
+              <p className="text-muted-foreground text-sm">Olyan árajánlat, amelyhez nem tartozik al-ügy.</p>
+            </div>
+            <div>
+              <h4 className="font-medium">Termékkategória</h4>
+              <p className="text-muted-foreground text-sm">
+                A sikeres árajánlat(ok) al-ügyeinek "területe" (pl. Pergola, Szalagfüggöny, stb.).
+              </p>
+              <p className="text-muted-foreground text-sm mt-1">
+                Fontos: <strong>egy árajánlathoz több al-ügy is tartozhat</strong>, ezért egy árajánlat több termékkategóriába is "beleszámolhat".
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Partners tábla */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">1) Partners tábla (partners) – összesített partner statisztika</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground">
+            Minden sor <strong>egy partner</strong> összesített statisztikája.
           </p>
           
           <div>
-            <h3 className="font-semibold text-lg mb-3">Oszlopok magyarázata</h3>
+            <h3 className="font-semibold text-lg mb-3">Oszlopok</h3>
             <div className="space-y-4">
               <div>
                 <h4 className="font-medium">partner</h4>
-                <p className="text-muted-foreground text-sm">Az ügyfél neve (Partner-adatbázis mező értéke).</p>
+                <p className="text-muted-foreground text-sm">A partner neve.</p>
               </div>
               
               <div>
-                <h4 className="font-medium">összes_árajánlat (total_quotes)</h4>
-                <p className="text-muted-foreground text-sm">Hány árajánlat ticket tartozik ehhez a partnerhez az adott időszakban.</p>
+                <h4 className="font-medium">összes_árajánlat</h4>
+                <p className="text-muted-foreground text-sm">Hány árajánlat tartozik a partnerhez összesen.</p>
               </div>
               
               <div>
-                <h4 className="font-medium">sikeres_árajánlatok (completed_quotes)</h4>
-                <p className="text-muted-foreground text-sm">Hány olyan árajánlat van, aminek van al-tickete (Members), tehát "befejezett".</p>
+                <h4 className="font-medium">sikeres_árajánlatok</h4>
+                <p className="text-muted-foreground text-sm">Hány árajánlat <strong>sikeres</strong> (van al-ügye).</p>
               </div>
               
               <div>
-                <h4 className="font-medium">sikertelen_árajánlatok (incomplete_quotes)</h4>
-                <p className="text-muted-foreground text-sm">Hány olyan árajánlat van, aminek nincs al-tickete.</p>
+                <h4 className="font-medium">sikertelen_árajánlatok</h4>
+                <p className="text-muted-foreground text-sm">Hány árajánlat <strong>sikertelen</strong> (nincs al-ügye).</p>
               </div>
               
               <div>
-                <h4 className="font-medium">sikerességi_arány (completion_rate)</h4>
+                <h4 className="font-medium">sikerességi_arány</h4>
+                <p className="text-muted-foreground text-sm">A partner nyers sikeressége (arány):</p>
+                <code className="block bg-muted px-2 py-1 rounded mt-1 text-sm">sikerességi_arány = sikeres_árajánlatok / összes_árajánlat</code>
+              </div>
+              
+              <div>
+                <h4 className="font-medium">korrigált_sikerességi_arány</h4>
                 <p className="text-muted-foreground text-sm">
-                  A nyers sikerességi arány: <code className="bg-muted px-1 rounded">completed_quotes / total_quotes</code>
+                  "Simított / korrigált" sikerességi arány. Célja: igazságosabb összehasonlítás akkor is, ha valakinek kevés árajánlata van.
+                  A cég átlagos sikerességi arányát (kb. 14–15%) is figyelembe veszi, és ezzel "stabilizálja" a kis mintás partnereket.
                 </p>
-                <p className="text-muted-foreground text-sm mt-1">
-                  Példa: 10 árajánlatból 2 sikeres → 0,20 (20%).
-                </p>
-              </div>
-              
-              <div>
-                <h4 className="font-medium">korrigált_sikerességi_arány (adjusted_completion_rate)</h4>
-                <p className="text-muted-foreground text-sm">
-                  Egy "simított" sikerességi arány, ami figyelembe veszi, hogy kevés adatnál a nyers arány nagyon csalóka lehet.
-                  Ennek célja, hogy egy 1/1 = 100% ne verjen meg egy 58/70 = 82,9%-ot csak azért, mert kevés a minta.
-                </p>
-                <div className="mt-2 p-3 bg-muted/50 rounded-lg text-sm">
-                  <p className="font-medium mb-1">A simítás lényege:</p>
-                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                    <li>van egy céges átlag sikerességi arány (globalRate), ami kb. 0,14–0,15 (14–15%),</li>
-                    <li>és ezt használjuk "prior"-ként,</li>
-                    <li>így kapunk egy stabilabb, összehasonlítható értéket.</li>
-                  </ul>
-                </div>
                 <div className="mt-3 p-3 bg-muted/50 rounded-lg text-sm">
                   <p className="font-medium mb-2">Képlet:</p>
                   <div className="flex items-center justify-center text-muted-foreground">
-                    <span className="mr-2">adjusted_completion_rate =</span>
+                    <span className="mr-2">korrigált_sikerességi_arány =</span>
                     <div className="inline-flex flex-col items-center">
-                      <span className="border-b border-muted-foreground px-2">completed_quotes + k · globalRate</span>
-                      <span className="px-2">total_quotes + k</span>
+                      <span className="border-b border-muted-foreground px-2">sikeres_árajánlatok + k × céges_átlag_sikerességi_arány</span>
+                      <span className="px-2">összes_árajánlat + k</span>
                     </div>
                   </div>
-                  <p className="text-muted-foreground mt-3 text-center">ahol <code className="bg-muted px-1 rounded">k</code> egy korrekciós súly (pl. 20).</p>
+                  <p className="text-muted-foreground mt-3 text-center">(A <code className="bg-muted px-1 rounded">k</code> egy beállított korrekciós súly; tipikusan 20.)</p>
                 </div>
               </div>
               
               <div>
-                <h4 className="font-medium">érték_pontszám (value_score)</h4>
+                <h4 className="font-medium">érték_pontszám</h4>
                 <p className="text-muted-foreground text-sm">
-                  Ez azt mutatja, hogy a partner mennyire "értékes" árajánlat-szempontból, a volumen és a minőség együtt:
+                  "Várható sikeres darabszám" jellegű pontszám: egyszerre veszi figyelembe a volument és a minőséget.
                 </p>
-                <code className="block bg-muted px-2 py-1 rounded mt-1 text-sm">value_score = adjusted_completion_rate * total_quotes</code>
+                <code className="block bg-muted px-2 py-1 rounded mt-1 text-sm">érték_pontszám = korrigált_sikerességi_arány × összes_árajánlat</code>
                 <p className="text-muted-foreground text-sm mt-2">
-                  Ez gyakorlatilag a várható sikeres árajánlatok száma (korrigált aránnyal).
+                  Példa gondolat: 70 árajánlatból 58 siker (nagy volumen + jó arány) jellemzően magasabb érték, mint 7-ből 6 (jó arány, de kicsi volumen).
                 </p>
-                <div className="mt-2 p-3 bg-muted/50 rounded-lg text-sm">
-                  <p className="font-medium mb-1">Példa:</p>
-                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                    <li>Partner A: 70 árajánlat, 0,83 korrigált arány → value_score ≈ 58</li>
-                    <li>Partner B: 7 árajánlat, 0,86 korrigált arány → value_score ≈ 6</li>
-                    <li>→ A sokkal értékesebb, mert nagy volumenben is hozza a sikert.</li>
-                  </ul>
-                </div>
               </div>
               
               <div>
-                <h4 className="font-medium">sikertelen_pontszám (waste_score)</h4>
+                <h4 className="font-medium">sikertelen_pontszám</h4>
                 <p className="text-muted-foreground text-sm">
-                  Ez a "veszteség" / "időhúzás" jellegű pontszám:
+                  "Várható elpocsékolt darabszám" jellegű pontszám (időráfordítás kockázat).
                 </p>
-                <code className="block bg-muted px-2 py-1 rounded mt-1 text-sm">waste_score = (1 - adjusted_completion_rate) * total_quotes</code>
-                <p className="text-muted-foreground text-sm mt-2">
-                  Minél magasabb, annál több olyan árajánlat várható, ami nem vezet eredményre.
-                  Ez nem azt jelenti, hogy "rossz ember az ügyfél", hanem hogy arányában sok erőforrás megy el rá kevés eredménnyel.
-                </p>
+                <code className="block bg-muted px-2 py-1 rounded mt-1 text-sm">sikertelen_pontszám = (1 − korrigált_sikerességi_arány) × összes_árajánlat</code>
               </div>
               
               <div>
-                <h4 className="font-medium">legutóbbi_sikeres_dátum (last_completed_date)</h4>
-                <p className="text-muted-foreground text-sm">Az utolsó olyan árajánlat dátuma, amely "befejezett" volt (volt al-ticket).</p>
+                <h4 className="font-medium">legutóbbi_sikeres_dátum</h4>
+                <p className="text-muted-foreground text-sm">A partner legutóbbi sikeres árajánlatának dátuma.</p>
               </div>
               
               <div>
-                <h4 className="font-medium">legutóbbi_árajánlat_dátum (last_quote_date)</h4>
-                <p className="text-muted-foreground text-sm">Az adott partner legutóbbi árajánlatkérésének dátuma.</p>
+                <h4 className="font-medium">legutóbbi_árajánlat_dátum</h4>
+                <p className="text-muted-foreground text-sm">A partner legutóbbi árajánlatának dátuma (sikeres vagy sikertelen is lehet).</p>
               </div>
               
               <div>
-                <h4 className="font-medium">napok_a_legutóbbi_árajánlat_óta (days_since_last_quote)</h4>
-                <p className="text-muted-foreground text-sm">Hány nap telt el az utolsó árajánlat óta.</p>
+                <h4 className="font-medium">napok_a_legutóbbi_árajánlat_óta</h4>
+                <p className="text-muted-foreground text-sm">Hány nap telt el a legutóbbi árajánlat óta.</p>
               </div>
               
               <div>
-                <h4 className="font-medium">alvó (is_sleeping)</h4>
+                <h4 className="font-medium">alvó (igaz/hamis)</h4>
                 <p className="text-muted-foreground text-sm">
-                  A partner akkor "alvó", ha a legutóbbi árajánlat óta több mint X nap telt el (jellemzően 90 nap).
-                  Cél: könnyen azonosítani az inaktív ügyfeleket.
+                  Igaz, ha a partnernél a legutóbbi árajánlat óta eltelt napok száma nagy (jelenleg 90+ nap).
                 </p>
               </div>
               
               <div>
-                <h4 className="font-medium">kategória (category)</h4>
-                <p className="text-muted-foreground text-sm">Automatikus besorolás az árajánlat viselkedés alapján. Példák:</p>
+                <h4 className="font-medium">kategória</h4>
+                <p className="text-muted-foreground text-sm">Automatikus besorolás a partner viselkedése alapján:</p>
                 <ul className="list-disc list-inside text-muted-foreground text-sm mt-1 space-y-1">
-                  <li><strong>MAGAS_ÉRTÉK:</strong> jó korrigált arány + elég nagy minta → érdemes rá fókuszálni</li>
-                  <li><strong>ROSSZ_ARÁNY / IDŐHÚZÓ:</strong> alacsony korrigált arány + elég nagy minta → sok erőforrás, kevés eredmény</li>
-                  <li><strong>KEVÉS_ÁRAJÁNLAT:</strong> túl kevés adat, nem megbízható még a megítélés</li>
-                  <li><strong>KÖZEPES:</strong> nem kiugró egyik irányba sem</li>
+                  <li><strong>KEVÉS_ÁRAJÁNLAT:</strong> kevés adat (kis minta)</li>
+                  <li><strong>MAGAS_ÉRTÉK:</strong> a korrigált_sikerességi_arány a céges átlaghoz képest kiemelkedő</li>
+                  <li><strong>ROSSZ_ARÁNY:</strong> a korrigált_sikerességi_arány a céges átlaghoz képest gyenge</li>
+                  <li><strong>KÖZEPES:</strong> a kettő közötti tartomány</li>
                 </ul>
+              </div>
+              
+              <div>
+                <h4 className="font-medium">létrehozva</h4>
+                <p className="text-muted-foreground text-sm">A riport készítésének dátuma (mikor frissültek a sorok).</p>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Top Best Customers */}
+      {/* Top értékes partnerek */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">2) top_best_customers – "Top értékes" partnerek listája</CardTitle>
+          <CardTitle className="text-xl">2) Top értékes partnerek (top_best_customers)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-muted-foreground">Ez a lista azokból a partnerekből készül, akik:</p>
+          <p className="text-muted-foreground">
+            Ez a tábla a <strong>MAGAS_ÉRTÉK</strong> kategóriába eső partnereket listázza.
+          </p>
           <ul className="list-disc list-inside text-muted-foreground space-y-1">
-            <li>elég sok árajánlattal rendelkeznek (minimum mintaszám),</li>
-            <li>és a korrigált sikerességi arányuk a cég átlagához képest magas,</li>
-            <li>és a rangsor alapja főleg az érték_pontszám (value_score).</li>
+            <li><strong>helyezés:</strong> a rangsor szerinti sorszám</li>
+            <li>A rendezés fő logikája: minél nagyobb az <strong>érték_pontszám</strong>, annál előrébb szerepel.</li>
           </ul>
+          <p className="text-muted-foreground text-sm">
+            Megjegyzés: ha kevés partner felel meg a feltételeknek, a lista rövidebb lehet.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Kevésbé értékes partnerek */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">3) Kevésbé értékes partnerek (top_worst_customers)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground">
+            Ez a tábla a <strong>ROSSZ_ARÁNY</strong> kategóriába eső partnereket listázza.
+          </p>
+          <ul className="list-disc list-inside text-muted-foreground space-y-1">
+            <li><strong>helyezés:</strong> a rangsor szerinti sorszám</li>
+            <li>A rendezés fő logikája: minél nagyobb a <strong>sikertelen_pontszám</strong>, annál előrébb szerepel (tehát ahol sok árajánlatból várhatóan sok "nem fordul át" sikerbe).</li>
+          </ul>
+          <p className="text-muted-foreground text-sm">
+            Megjegyzés: ha kevés partner felel meg a feltételeknek, a lista rövidebb lehet.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Alvó partnerek */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">4) Alvó partnerek (sleeping_customers)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground">Azok a partnerek szerepelnek itt, akiknél:</p>
+          <ul className="list-disc list-inside text-muted-foreground space-y-1">
+            <li><strong>alvó = igaz</strong> (vagyis rég volt árajánlatuk).</li>
+          </ul>
+          <p className="text-muted-foreground text-sm">
+            A lista általában a <strong>napok_a_legutóbbi_árajánlat_óta</strong> alapján van "leginkább alvótól" a kevésbé alvó felé rendezve.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Termékkategóriák */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">5) Árajánlatok termékkategóriák szerint (partner_product_stats)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground">
+            Ez a tábla azt mutatja meg, hogy egy partner <strong>milyen termékkategóriákban</strong> rendelkezik sikeres árajánlatokkal.
+            Minden sor egy (partner, termékkategória) pár.
+          </p>
           
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <h4 className="font-medium mb-2">Mit jelent itt a rang?</h4>
-            <p className="text-muted-foreground text-sm">
-              A rangsor azt mutatja, hogy ki hozza a legtöbb várható sikeres ajánlatot (volumen + minőség),
-              tehát kikkel érdemes a legjobban foglalkozni, mert nagyobb eséllyel térül meg az árajánlat-készítés.
-            </p>
+          <div>
+            <h3 className="font-semibold text-lg mb-3">Oszlopok</h3>
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-medium">partner2</h4>
+                <p className="text-muted-foreground text-sm">A partner neve (ebben a táblában ez az oszlop neve).</p>
+              </div>
+              <div>
+                <h4 className="font-medium">termekkategoria</h4>
+                <p className="text-muted-foreground text-sm">A termékkategória/terület neve (pl. Pergola, Szalagfüggöny, stb.).</p>
+              </div>
+              <div>
+                <h4 className="font-medium">db</h4>
+                <p className="text-muted-foreground text-sm">
+                  Hány darab sikeres árajánlathoz tartozó al-ügy esett ebbe a termékkategóriába.
+                </p>
+                <p className="text-muted-foreground text-sm mt-1">
+                  Fontos: mivel egy árajánlathoz több al-ügy is tartozhat, ezért a termékkategóriákban szereplő db-k összege egy partnernél akár nagyobb is lehet, mint a partners táblában lévő sikeres_árajánlatok érték.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-medium">létrehozva2</h4>
+                <p className="text-muted-foreground text-sm">A riport készítésének dátuma (mikor frissültek a sorok).</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Top Worst Customers */}
+      {/* Adatok frissítése */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">3) top_worst_customers – "Top időhúzó / rossz arányú" partnerek listája</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">Ez a lista azokból a partnerekből készül, akik:</p>
-          <ul className="list-disc list-inside text-muted-foreground space-y-1">
-            <li>elég sok árajánlattal rendelkeznek (minimum mintaszám),</li>
-            <li>és a korrigált sikerességi arányuk alacsony a cég átlagához képest,</li>
-            <li>és a rangsor alapja főleg a sikertelen_pontszám (waste_score).</li>
-          </ul>
-          
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <h4 className="font-medium mb-2">Mit jelent itt a rang?</h4>
-            <p className="text-muted-foreground text-sm">
-              A rangsor azt mutatja, hogy kiknél várható a legtöbb "nem megtérülő" árajánlat,
-              tehát kikkel kapcsolatban érdemes üzletileg átgondolni a stratégiát (pl. minősítés, előszűrés, új folyamat, más kommunikáció).
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Sleeping Customers */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">4) sleeping_customers – alvó / inaktív partnerek</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">Ez a lista azokból áll, akiknél:</p>
-          <ul className="list-disc list-inside text-muted-foreground space-y-1">
-            <li>a legutóbbi árajánlat óta több mint X nap telt el (pl. 90 nap),</li>
-            <li>a lista rendezése általában a legrégebbi utolsó árajánlattól a frissebb felé történik.</li>
-          </ul>
-          
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <h4 className="font-medium mb-2">Cél:</h4>
-            <ul className="list-disc list-inside text-muted-foreground text-sm space-y-1">
-              <li>visszaaktiválási kampányok,</li>
-              <li>ügyfélgondozás,</li>
-              <li>"kieső" ügyfelek korai felismerése.</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Important Notes */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader>
-          <CardTitle className="text-xl">Fontos megjegyzések / értelmezés</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <ul className="list-disc list-inside text-muted-foreground space-y-2">
-            <li>A statisztika <strong>nem minősít embereket</strong>, hanem árajánlat-viselkedést mér.</li>
-            <li>A "rossz" lista <strong>nem azt jelenti, hogy "rossz ügyfél"</strong>, hanem hogy sok munka kevés eredménnyel.</li>
-            <li>A korrigált arány és a pontszámok azért vannak, hogy a cég alacsony átlagos sikeressége (kb. 14–15%) mellett is reális összehasonlítást kapjunk.</li>
-          </ul>
-        </CardContent>
-      </Card>
-
-      {/* Data Refresh */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Adatfrissítés</CardTitle>
+          <CardTitle className="text-xl">Adatok frissítése</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            A dashboard adatai webhookon keresztül frissülnek.
-            A "Frissítés" gomb egy n8n webhookot hív meg, ami visszaadja a 4 tábla aktuális adatait, és a felület automatikusan újratölti őket.
+            Az "Adatok frissítése" gomb a legfrissebb riportot tölti be, és frissíti a táblákat.
+            A frissítés dátumát a táblákban a <strong>létrehozva</strong> / <strong>létrehozva2</strong> oszlop mutatja.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Jogosultságok */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Jogosultságok és belépés (amit felhasználóként érdemes tudni)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <ul className="list-disc list-inside text-muted-foreground space-y-2">
+            <li><strong>Kétféle felhasználói szerepkör van:</strong> felhasználó és admin.</li>
+            <li><strong>Fiókot létrehozni csak meghívóval lehet</strong> (admin által küldött meghívó alapján).</li>
+            <li>Előfordulhat, hogy bejelentkezés után a rendszer <strong>kétlépcsős azonosítást</strong> kér (2FA).</li>
+            <li>Az admin felhasználók számára elérhető egy <strong>Admin panel</strong>, ahol a felhasználókezelés és a meghívások kezelése történik.</li>
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* Chat */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Chat (AI asszisztens)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            A Chat oldalon magyarul kérdezhetsz a dashboard adatairól (pl. "melyik partnernek van a legtöbb árajánlata?").
           </p>
         </CardContent>
       </Card>
