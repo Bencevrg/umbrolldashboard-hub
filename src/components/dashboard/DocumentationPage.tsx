@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 
 export const DocumentationPage = () => {
   return (
@@ -7,7 +6,7 @@ export const DocumentationPage = () => {
       {/* Intro */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Umbroll Dashboard – Leírás</CardTitle>
+          <CardTitle className="text-2xl">Umbroll Dashboard / AI – Leírás</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
@@ -35,19 +34,19 @@ export const DocumentationPage = () => {
             </div>
             <div>
               <h4 className="font-medium">Sikeres árajánlat</h4>
-              <p className="text-muted-foreground text-sm">Olyan árajánlat, amelyhez tartozik legalább 1 al-ügy (al-ticket).</p>
+              <p className="text-muted-foreground text-sm">Olyan árajánlat, ami vásárlásba fordult.</p>
             </div>
             <div>
               <h4 className="font-medium">Sikertelen árajánlat</h4>
-              <p className="text-muted-foreground text-sm">Olyan árajánlat, amelyhez nem tartozik al-ügy.</p>
+              <p className="text-muted-foreground text-sm">Olyan árajánlat, ami nem fordult vásárlásba.</p>
             </div>
             <div>
               <h4 className="font-medium">Termékkategória</h4>
               <p className="text-muted-foreground text-sm">
-                A sikeres árajánlat(ok) al-ügyeinek "területe" (pl. Pergola, Szalagfüggöny, stb.).
+                A sikeres árajánlat(ok) al-árajánlatainak "területe" (pl. Pergola, Szalagfüggöny, stb.).
               </p>
               <p className="text-muted-foreground text-sm mt-1">
-                Fontos: <strong>egy árajánlathoz több al-ügy is tartozhat</strong>, ezért egy árajánlat több termékkategóriába is "beleszámolhat".
+                Fontos: <strong>egy árajánlathoz több al-árajánlat is tartozhat</strong>, ezért egy árajánlat több termékkategóriába is "beleszámolhat".
               </p>
             </div>
           </div>
@@ -79,12 +78,12 @@ export const DocumentationPage = () => {
               
               <div>
                 <h4 className="font-medium">sikeres_árajánlatok</h4>
-                <p className="text-muted-foreground text-sm">Hány árajánlat <strong>sikeres</strong> (van al-ügye).</p>
+                <p className="text-muted-foreground text-sm">Hány árajánlat <strong>sikeres</strong>.</p>
               </div>
               
               <div>
                 <h4 className="font-medium">sikertelen_árajánlatok</h4>
-                <p className="text-muted-foreground text-sm">Hány árajánlat <strong>sikertelen</strong> (nincs al-ügye).</p>
+                <p className="text-muted-foreground text-sm">Hány árajánlat <strong>sikertelen</strong>.</p>
               </div>
               
               <div>
@@ -252,10 +251,10 @@ export const DocumentationPage = () => {
               <div>
                 <h4 className="font-medium">db</h4>
                 <p className="text-muted-foreground text-sm">
-                  Hány darab sikeres árajánlathoz tartozó al-ügy esett ebbe a termékkategóriába.
+                  Hány darab sikeres árajánlat esett ebbe a termékkategóriába.
                 </p>
                 <p className="text-muted-foreground text-sm mt-1">
-                  Fontos: mivel egy árajánlathoz több al-ügy is tartozhat, ezért a termékkategóriákban szereplő db-k összege egy partnernél akár nagyobb is lehet, mint a partners táblában lévő sikeres_árajánlatok érték.
+                  Fontos: mivel egy árajánlathoz több al-árajánlat is tartozhat, ezért a termékkategóriákban szereplő db-k összege egy partnernél akár nagyobb is lehet, mint a partners táblában lévő sikeres_árajánlatok érték.
                 </p>
               </div>
               <div>
@@ -289,7 +288,7 @@ export const DocumentationPage = () => {
           <ul className="list-disc list-inside text-muted-foreground space-y-2">
             <li><strong>Kétféle felhasználói szerepkör van:</strong> felhasználó és admin.</li>
             <li><strong>Fiókot létrehozni csak meghívóval lehet</strong> (admin által küldött meghívó alapján).</li>
-            <li>Előfordulhat, hogy bejelentkezés után a rendszer <strong>kétlépcsős azonosítást</strong> kér (2FA).</li>
+            <li>Bejelentkezés után a rendszer <strong>kétlépcsős azonosítást</strong> kér (2FA).</li>
             <li>Az admin felhasználók számára elérhető egy <strong>Admin panel</strong>, ahol a felhasználókezelés és a meghívások kezelése történik.</li>
           </ul>
         </CardContent>
