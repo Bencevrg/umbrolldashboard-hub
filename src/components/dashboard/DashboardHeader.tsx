@@ -32,8 +32,7 @@ export const DashboardHeader = () => {
             className="h-12 w-auto"
           />
           <div className="hidden sm:block">
-            <h1 className="text-xl font-bold text-primary-foreground">Partner Dashboard</h1>
-            <p className="text-sm text-primary-foreground/80">Árajánlat analitika</p>
+            <h1 className="text-xl font-bold text-primary-foreground">Umbroll AI</h1>
           </div>
         </div>
         <div className="flex items-center gap-3">
