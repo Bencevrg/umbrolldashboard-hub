@@ -50,7 +50,7 @@ const Auth = () => {
         <CardHeader className="text-center">
           <img src={umbrollLogo} alt="Umbroll" className="mx-auto mb-4 h-14" />
           <CardTitle className="text-2xl">Bejelentkezés</CardTitle>
-          <CardDescription>Jelentkezz be a Partner Dashboard-ba</CardDescription>
+          <CardDescription>Jelentkezz be az Umbroll AI felületre</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

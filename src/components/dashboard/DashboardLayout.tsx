@@ -20,7 +20,7 @@ export const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardL
       </main>
 
       <footer className="border-t bg-card py-4 text-center text-sm text-muted-foreground">
-        © 2025 Umbroll - Partner Analytics Dashboard
+        © 2025 Umbroll AI
       </footer>
       
       <Toaster />
